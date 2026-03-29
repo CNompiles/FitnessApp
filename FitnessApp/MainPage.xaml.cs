@@ -2,22 +2,24 @@
 
 public partial class MainPage : ContentPage
 {
-	int count = 0;
+	
 
 	public MainPage()
 	{
 		InitializeComponent();
 	}
 
-	private void OnCounterClicked(object? sender, EventArgs e)
-	{
-		count++;
+	private void OnSearchClicked(object sender, EventArgs e)
+{
+    var foodName = FoodEntry.Text;
+    if (string.IsNullOrWhiteSpace(foodName))
+    {
+        ResultLabel.Text = "Παρακαλώ γράψτε κάτι!";
+        return;
+    }
 
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
-
-		SemanticScreenReader.Announce(CounterBtn.Text);
-	}
+    // Για τώρα κάνουμε ένα απλό μήνυμα. 
+    // Εδώ ο συνεργάτης σου θα βάλει τη σύνδεση με τη βάση δεδομένων.
+    ResultLabel.Text = $"Έφαγες {foodName}. Μπράβο!";
+}
 }

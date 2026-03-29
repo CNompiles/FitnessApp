@@ -1,0 +1,18 @@
+# .NET Build Output
+bin/
+obj/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.userosscache
+*.sln.docstates
+
+# macOS
+.DS_Store
+
+# Android-specific
+*.ap_
+*.apk
+*.dex

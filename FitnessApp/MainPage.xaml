@@ -12,7 +12,7 @@
         <Frame CornerRadius="10" BorderColor="#D3D3D3" Padding="10">
             <VerticalStackLayout Spacing="10">
                 <Label Text="Τι φάγατε σήμερα;" FontSize="16" />
-                <Entry x:Name="FoodEntry" Placeholder="π.χ. Κοτόπουλο, Μήλο..." />
+                <Entry x:Name="FoodEntry" Placeholder="π.χ. Μήλο" Keyboard="Text" />
                 <Button Text="Αναζήτηση" Clicked="OnSearchClicked" BackgroundColor="#4CAF50" />
             </VerticalStackLayout>
         </Frame>

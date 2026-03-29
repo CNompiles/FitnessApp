@@ -18,8 +18,7 @@ public partial class MainPage : ContentPage
         return;
     }
 
-    // Για τώρα κάνουμε ένα απλό μήνυμα. 
-    // Εδώ ο συνεργάτης σου θα βάλει τη σύνδεση με τη βάση δεδομένων.
+    
     ResultLabel.Text = $"Έφαγες {foodName}. Μπράβο!";
 }
 }

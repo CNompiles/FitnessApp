@@ -1,13 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-            x:Class="FitnessApp.MainPage">
+            x:Class="FitnessApp.MainPage"
+            BackgroundColor="{AppThemeBinding Light=White, Dark=#1a1a1a}">
 
-    <ScrollView>
-    <VerticalStackLayout Padding="30" Spacing="20">
-        
-        <Image Source="dotnet_bot.png" HeightRequest="100" HorizontalOptions="Center" />
-        <Label Text="My Fitness Tracker" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" TextColor="#4CAF50"/>
+<!-- Grid (Overlay, bottomsheet) -->
+    <Grid>
+
+        <!-- Main Page -->
+        <ScrollView>
+            <VerticalStackLayout Padding="30" Spacing="20">
+
+                <!-- Image for Page -->
+                <Image Source="dotnet_bot.png" HeightRequest="100" HorizontalOptions="Center" />
+                <Label Text="My Fitness Tracker" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" TextColor="#4CAF50"/>
 
         <Frame CornerRadius="10" BorderColor="#D3D3D3" Padding="10">
             <VerticalStackLayout Spacing="10">
@@ -22,4 +28,5 @@
     </VerticalStackLayout>
 </ScrollView>
 
+    </Grid>
 </ContentPage>

@@ -13,7 +13,10 @@
 
                 <!-- Image for Page -->
                 <Image Source="dotnet_bot.png" HeightRequest="100" HorizontalOptions="Center" />
-                <Label Text="My Fitness Tracker" FontSize="28" FontAttributes="Bold" HorizontalOptions="Center" TextColor="#4CAF50"/>
+                
+                <!-- Title App -->
+                <Label Text="DailyBite" FontSize="28" FontAttributes="Bold" 
+                    HorizontalOptions="Center" TextColor="#4CAF50"/>
 
         <Frame CornerRadius="10" BorderColor="#D3D3D3" Padding="10">
             <VerticalStackLayout Spacing="10">

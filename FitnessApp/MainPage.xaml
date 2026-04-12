@@ -46,8 +46,8 @@
             BackgroundColor="#0F1D2D"
             TextColor="White"
             HorizontalOptions="End"
-            VerticalOptions="End"
-            Margin="0,0,20,30"
+            VerticalOptions="Start"
+            Margin="0,40,20,0"
             Clicked="OnMenuClicked"
             ZIndex="10"/>
 
@@ -67,10 +67,13 @@
                 BackgroundColor="{AppThemeBinding Light=White, Dark=#2a2a2a}"
                 CornerRadius="20"
                 Padding="20"
-                VerticalOptions="End"
+                HorizontalOptions="End"
+                VerticalOptions="Fill"
                 IsVisible="False"
                 ZIndex="30"
-                TranslationY="400">
+                WidthRequest="200"
+                TranslationX="200"
+                TranslationY="0">
             <VerticalStackLayout Spacing="0">
                 
                 <!-- Bar at the top to show that it is sliding -->

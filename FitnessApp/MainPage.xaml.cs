@@ -45,7 +45,7 @@ public partial class MainPage : ContentPage
                 Protein = 5 
             };
 
-            ResultLabel.Text = $"{mockResult.Name}: {mockResult.Calories} �������� ��� {mockResult.Protein}g ���������.";
+            ResultLabel.Text = $"{mockResult.Name}: {mockResult.Calories} Θερμίδες και {mockResult.Protein}g Πρωτεϊνης.";
         }
         catch (Exception)
         {
@@ -57,8 +57,7 @@ public partial class MainPage : ContentPage
     {
         await Task.WhenAll(
             Overlay.FadeTo(0, 300),
-            BottomSheet.TranslateTo(0, 400, 300, Easing.CubicIn)
-        );
+            BottomSheet.TranslateTo(200, 0, 300, Easing.CubicIn));// Close to the right
         Overlay.IsVisible = false;
         BottomSheet.IsVisible = false;
     }

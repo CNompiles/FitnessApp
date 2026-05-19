@@ -9,10 +9,39 @@ public partial class MainPage : ContentPage
     //Constants — values
 
     //API key from openrouter hosting
-    private const string ApiKey = "MY_API_KEY_HERE";
+
+    private static readonly string ApiKey = LoadApiKey();
+    private static string LoadApiKey()
+    {
+        // Windows reads from environment variable
+
+        var envKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
+        if (!string.IsNullOrEmpty(envKey)) return envKey;
+
+        //Android reads from Maui Asset FileSystem
+
+        try
+        {
+            using var stream = FileSystem.OpenAppPackageFileAsync("local.properties").Result;
+            using var reader = new StreamReader(stream);
+            var content = reader.ReadToEnd();
+            foreach (var line in content.Split('\n'))
+            {
+                var trimmed = line.Trim();
+                if (trimmed.StartsWith("OPENROUTER_API_KEY="))
+                    return trimmed.Split('=', 2)[1].Trim();
+            }
+        }
+        catch { }
+
+        return string.Empty;
+    }
     //The AI model we want to use for nutrition lookups
+
     private const string Model = "openai/gpt-oss-120b:free";
+   
     //HttpClient is designed to be reused — creating a new one each time
+    
     private readonly HttpClient _http = new();
 
     public MainPage()

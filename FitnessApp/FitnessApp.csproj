@@ -68,4 +68,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
 	</ItemGroup>
 
+	<!-- Include local.properties as a bundled asset ONLY in Android builds. -->
+	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+		<MauiAsset Include="local.properties" LogicalName="local.properties" />
+	</ItemGroup>
 </Project>

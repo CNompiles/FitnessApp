@@ -1,123 +1,230 @@
-﻿using System.Net.Http.Json; // For future API calls
+﻿using System.Net.Http.Headers; //For setting HTTP headers
+using System.Text;  //For encoding text to bytes (UTF-8)
+using System.Text.Json; //For converting C# objects to/from JSON
 
 namespace FitnessApp;
 
 public partial class MainPage : ContentPage
 {
-	public MainPage()
-	{
-		InitializeComponent(); // Loading XAML
-	}
+    //Constants — values
 
-    // Class For the food Data
+    //API key from openrouter hosting
+    private const string ApiKey = "MY_API_KEY_HERE";
+    //The AI model we want to use for nutrition lookups
+    private const string Model = "openai/gpt-oss-120b:free";
+    //HttpClient is designed to be reused — creating a new one each time
+    private readonly HttpClient _http = new();
+
+    public MainPage()
+    {
+        InitializeComponent();
+    }
+
+    //Data Model — represents one food item
+
     public class FoodItem
     {
+        //A simple data class (POCO) that holds nutrition values for one food
+        //The AI will return JSON that maps directly onto this class
+
         public string Name { get; set; } = string.Empty;
         public double Calories { get; set; }
         public double Protein { get; set; }
         public double Carbs { get; set; }
         public double Fat { get; set; }
+        public double Fiber { get; set; }
+        public double Sugar { get; set; }
     }
 
-    // Search Food 
+    //Event Handler — triggered when the user taps "Search"
+
     private async void OnSearchClicked(object sender, EventArgs e)
     {
-        var foodName = FoodEntry.Text;
+        var foodName = FoodEntry.Text?.Trim();
 
-        // check if he has written anything
         if (string.IsNullOrWhiteSpace(foodName))
         {
-            ResultLabel.Text = "Παρακαλώ γράψτε κάτι";
+            ResultLabel.Text = "Please Write Something";
             return;
         }
 
-        ResultLabel.Text = "Αναζήτηση...";
+        //Show a loading indicator while we wait for the API
+       
+        ResultLabel.Text = "⏳ Search...";
 
-        try 
+        try
         {
-            await Task.Delay(1000); // search simulation (replaced by API)
 
-            // mock result - fixed values ??to the present
-            var mockResult = new FoodItem 
-            { 
-                Name = foodName, 
-                Calories = 150, 
-                Protein = 5 
-            };
+            //Call the API and wait for a FoodItem object back and Format and display all nutrition values on screen
 
-            ResultLabel.Text = $"{mockResult.Name}: {mockResult.Calories} Θερμίδες και {mockResult.Protein}g Πρωτεϊνης.";
+            var food = await GetFoodNutrition(foodName);
+
+            ResultLabel.Text =
+                $"🍽️ {food.Name} (100g)\n\n" +
+                $"🔥 Calories: {food.Calories} kcal\n" +
+                $"💪 Protein: {food.Protein}g\n" +
+                $"🍞 Carbohydrates: {food.Carbs}g\n" +
+                $"🧈 Fat: {food.Fat}g\n" +
+                $"🌿 Vegetable fibers: {food.Fiber}g\n" +
+                $"🍬 Sugar: {food.Sugar}g";
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            ResultLabel.Text = "Σφάλμα κατά την αναζήτηση.";
+            ResultLabel.Text = $"❌ Error: {ex.Message}";
         }
     }
-    // Method for helping close
+    //Core API Method — talks to OpenRouter
+
+    //Sends a request to the OpenRouter AI API and returns a FoodItem with nutrition data for the given food name
+
+    private async Task<FoodItem> GetFoodNutrition(string foodName)
+    {
+        var prompt = $@"You are a nutrition database. 
+Return ONLY a JSON object (no extra text) with nutrition per 100g for: {foodName}
+Format:
+{{
+  ""name"": ""{foodName}"",
+  ""calories"": 0,
+  ""protein"": 0,
+  ""carbs"": 0,
+  ""fat"": 0,
+  ""fiber"": 0,
+  ""sugar"": 0
+}}";
+
+        //Build the request body
+
+        //OpenRouter uses the same format as OpenAI's Chat API
+
+        var requestBody = new
+        {
+            model = Model,
+            messages = new[]
+            {
+                new { role = "user", content = prompt }
+            }
+        };
+
+        //Serialize to JSON
+        
+        //Build the HTTP request
+
+        var json = JsonSerializer.Serialize(requestBody);
+        var request = new HttpRequestMessage(HttpMethod.Post,
+            "https://openrouter.ai/api/v1/chat/completions");
+
+        //Attach our API key in the Authorization header
+
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", ApiKey);
+        request.Content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await _http.SendAsync(request);
+        var responseJson = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"API Error {response.StatusCode}: {responseJson}");
+        }
+
+        //Parse the outer API response
+
+        //The API wraps the AI's reply inside a JSON structure
+
+        using var doc = JsonDocument.Parse(responseJson);
+
+        if (doc.RootElement.TryGetProperty("error", out var errorProp))
+        {
+            throw new Exception($"API: {errorProp.GetProperty("message").GetString()}");
+        }
+
+        var content = doc.RootElement
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
+            .GetString() ?? "";
+
+        //Clean up markdown fences if present, Some models wrap their JSON in ```json ... ```
+        content = content.Trim();
+        if (content.StartsWith("```"))
+        {
+            content = content.Split('\n', 2)[1];
+            content = content[..content.LastIndexOf("```")];
+        }
+
+        //Deserialize into a FoodItem object Convert the JSON string the AI returned into a real C# FoodItem
+
+        var food = JsonSerializer.Deserialize<FoodItem>(content,
+            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+        return food ?? throw new Exception("No data found");
+    }
+
+    //Menu Logic
+
+    //Shared helper that animates the slide-in menu closed
+
     private async Task CloseMenu()
     {
+        //Run both animations simultaneously using Task.WhenAll await Task.WhenAll
+
         await Task.WhenAll(
             Overlay.FadeTo(0, 300),
-            BottomSheet.TranslateTo(200, 0, 300, Easing.CubicIn));// Close to the right
+            BottomSheet.TranslateTo(200, 0, 300, Easing.CubicIn));
         Overlay.IsVisible = false;
         BottomSheet.IsVisible = false;
     }
 
-    // MENU - OPEN
+    //Opens the slide-in menu when the ☰ button is tapped
+
     private async void OnMenuClicked(object sender, EventArgs e)
     {
-        BottomSheet.IsVisible = true;  // show menu
-        Overlay.IsVisible = true;      // show dark background
+        BottomSheet.IsVisible = true;
+        Overlay.IsVisible = true;
         await Task.WhenAll(
-            Overlay.FadeTo(0.5, 300),                           // The background gradually darkened.
-            BottomSheet.TranslateTo(0, 0, 300, Easing.CubicOut) // upload the menu with animation
-        );
+            Overlay.FadeTo(0.5, 300),
+            BottomSheet.TranslateTo(0, 0, 300, Easing.CubicOut));
     }
 
-    // MENU - CLOSE (When you click outside the menu)
+    //Closes the menu when the user taps the dark overlay behind it
+
     private async void OnOverlayTapped(object sender, EventArgs e)
     {
         await Task.WhenAll(
-            Overlay.FadeTo(0, 300),  // the background faded
-            BottomSheet.TranslateTo(0, 400, 300, Easing.CubicIn) // download the menu with animation
-        );
-        Overlay.IsVisible = false;     // Hide Fonto
-        BottomSheet.IsVisible = false; // Hide Menu
+            Overlay.FadeTo(0, 300),
+            BottomSheet.TranslateTo(0, 400, 300, Easing.CubicIn));
+        Overlay.IsVisible = false;
+        BottomSheet.IsVisible = false;
     }
 
-    // MENU - SELECT PROFILE
+    //Handles the Profile menu button tap
+
     private async void OnProfileClicked(object sender, EventArgs e)
     {
-        await CloseMenu(); // close the menu first
-        // TODO: replace with: await Navigation.PushAsync(new ProfilePage());
-        await DisplayAlert("Προφίλ", "Σελίδα Προφίλ - Σύντομα!", "OK");
+        await CloseMenu();
+        await DisplayAlert("Profile", "Profile Page - Coming Soon!", "OK");
     }
 
-    // MENU - SELECT SETTINGS
     private async void OnSettingsClicked(object sender, EventArgs e)
     {
-        await CloseMenu(); // close the menu first
-        // TODO: replace with: await Navigation.PushAsync(new SettingsPage());
-        await DisplayAlert("Ρυθμίσεις", "Σελίδα Ρυθμίσεων - Σύντομα!", "OK");
+        await CloseMenu();
+        await DisplayAlert("Settings", "Settings Page - Coming Soon!", "OK");
     }
 
-    // MENU - SELECT STATISTIC
     private async void OnStatsClicked(object sender, EventArgs e)
     {
-        await CloseMenu(); // close the menu first
-        // TODO: replace with: await Navigation.PushAsync(new StatsPage());
-        await DisplayAlert("Στατιστικά", "Σελίδα Στατιστικών - Σύντομα!", "OK");
+        await CloseMenu();
+        await DisplayAlert("Statistics", "Statistics Page - Coming Soon!", "OK");
     }
 
-    // MENU - EXIT
+    //Handles the Logout button. Asks for confirmation, then returns to SplashPage
+
     private async void OnLogoutClicked(object sender, EventArgs e)
     {
-        await CloseMenu(); // close the menu first
+        //Effectively "resetting" the navigation stack
 
-        // Ask the user if they are sure
-        bool confirm = await DisplayAlert("Έξοδος", "Θέλεις να αποσυνδεθείς;", "Ναι", "Όχι");
-        
+        await CloseMenu();
+        bool confirm = await DisplayAlert("Exit", "Do you want to log out?", "Yes", "No");
         if (confirm)
-            Application.Current!.Windows[0].Page = new SplashPage(); // Return Main page
+            Application.Current!.Windows[0].Page = new SplashPage();
     }
 }
-

@@ -9,7 +9,7 @@
     <Grid>
         <skia:SKLottieView
             x:Name="LottieView"
-            Source="SplashApple.json"
+            Source="fitness.json"
             RepeatCount="0"
             HeightRequest="300"
             WidthRequest="300"

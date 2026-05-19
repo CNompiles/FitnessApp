@@ -6,6 +6,7 @@ obj/
 .vs/
 .vscode/
 *.user
+*.suo
 *.userosscache
 *.sln.docstates
 
@@ -16,3 +17,31 @@ obj/
 *.ap_
 *.apk
 *.dex
+
+# Secrets
+secrets.json
+appsettings.local.json# .NET Build Output
+bin/
+obj/
+AppPackages/
+PublishOutputs/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# macOS
+.DS_Store
+
+# Android-specific
+*.ap_
+*.apk
+*.dex
+
+# Secrets & Local Config
+secrets.json
+appsettings.local.json

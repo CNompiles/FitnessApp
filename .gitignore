@@ -45,3 +45,4 @@ PublishOutputs/
 # Secrets & Local Config
 secrets.json
 appsettings.local.json
+local.properties

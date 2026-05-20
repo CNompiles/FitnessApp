@@ -13,29 +13,19 @@ public partial class MainPage : ContentPage
     private static readonly string ApiKey = LoadApiKey();
     private static string LoadApiKey()
     {
-        // Windows reads from environment variable
+        //Windows reads from environment variable
 
         var envKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
         if (!string.IsNullOrEmpty(envKey)) return envKey;
 
-        //Android reads from Maui Asset FileSystem
+        //Android reads from RuntimeHostConfigurationOption 
 
-        try
-        {
-            using var stream = FileSystem.OpenAppPackageFileAsync("local.properties").Result;
-            using var reader = new StreamReader(stream);
-            var content = reader.ReadToEnd();
-            foreach (var line in content.Split('\n'))
-            {
-                var trimmed = line.Trim();
-                if (trimmed.StartsWith("OPENROUTER_API_KEY="))
-                    return trimmed.Split('=', 2)[1].Trim();
-            }
-        }
-        catch { }
+        var configKey = AppContext.GetData("OPENROUTER_API_KEY") as string;
+        if (!string.IsNullOrEmpty(configKey)) return configKey;
 
         return string.Empty;
     }
+
     //The AI model we want to use for nutrition lookups
 
     private const string Model = "openai/gpt-oss-120b:free";

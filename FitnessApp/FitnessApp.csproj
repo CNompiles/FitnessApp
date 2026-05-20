@@ -33,6 +33,10 @@
 		<!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
 		<WindowsPackageType>None</WindowsPackageType>
 
+		<!-- Loading the OpenRouter API Key from local.properties -->
+		<OpenRouterApiKey Condition="Exists('$(SolutionDir)local.properties')"
+		>$([System.Text.RegularExpressions.Regex]::Match($([System.IO.File]::ReadAllText('$(SolutionDir)local.properties')), 'OPENROUTER_API_KEY=(.+)').Groups[1].Value.Trim())</OpenRouterApiKey>
+
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
@@ -69,7 +73,10 @@
 	</ItemGroup>
 
 	<!-- Include local.properties as a bundled asset ONLY in Android builds. -->
-	<ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
-		<MauiAsset Include="local.properties" LogicalName="local.properties" />
+	<ItemGroup>
+		<RuntimeHostConfigurationOption
+		  Include="OPENROUTER_API_KEY"
+		  Value="$(OpenRouterApiKey)"
+		  Trim="true" />
 	</ItemGroup>
 </Project>

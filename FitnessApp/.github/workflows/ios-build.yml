@@ -1,0 +1,50 @@
+name: Build iOS IPA
+ 
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # Επιτρέπει manual trigger από το GitHub UI
+ 
+jobs:
+  build-ios:
+    runs-on: macos-latest  # Δωρεάν Mac runner από το GitHub
+ 
+    steps:
+      # 1. Κατεβάζει τον κώδικά σου
+      - name: Checkout code
+        uses: actions/checkout@v4
+ 
+      # 2. Εγκαθιστά .NET 9
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+ 
+      # 3. Εγκαθιστά το MAUI workload
+      - name: Install MAUI workload
+        run: dotnet workload install maui-ios
+ 
+      # 4. Γράφει το API key από τα GitHub Secrets στο local.properties
+      - name: Create local.properties
+        run: echo "OPENROUTER_API_KEY=${{ secrets.OPENROUTER_API_KEY }}" > FitnessApp/local.properties
+ 
+      # 5. Κάνει build για iOS (χωρίς code signing — για sideload)
+      - name: Build iOS
+        run: |
+          dotnet build FitnessApp/FitnessApp.csproj \
+            -f net9.0-ios \
+            -c Release \
+            /p:RuntimeIdentifier=ios-arm64 \
+            /p:CodesignKey="" \
+            /p:CodesignProvision="" \
+            /p:EnableCodeSigning=false
+ 
+      # 6. Ανεβάζει το IPA ως artifact για να το κατεβάσεις
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: DailyBite-iOS
+          path: |
+            FitnessApp/bin/Release/net9.0-ios/**/*.ipa
+            FitnessApp/bin/Release/net9.0-ios/**/*.app
+          retention-days: 7  # Κρατάει το αρχείο 7 μέρες
